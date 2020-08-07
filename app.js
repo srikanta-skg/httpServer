@@ -1,55 +1,79 @@
 const http = require('http')
 const fs = require('fs')
 const { v4: uuidv4 } = require('uuid')
-const port = 4000
+const port = 8000
 
 const server = http.createServer((req, res) => {
     const url_array = req.url.split('/')
-    //console.log(url_array);
-    switch (url_array[1]) {
-        case 'html':
-            res.writeHead(200, { 'Contest-type': 'text/html' })
-            fs.readFile('index.html', (error, data) => {
-                if (error) {
-                    res.writeHead(404)
-                    res.write('Error: File Not Found')
+    try {
+        switch (url_array[1]) {
+            case 'html':
+                let path1 = './index.html';
+                if (fs.existsSync(path1)) {
+                    res.writeHead(200, { 'Contest-type': 'text/html' })
+                    fs.readFile(path1, (error, data) => {
+                        if (!error) {
+                            res.write(data)
+                        }
+                        res.end()
+                    })
+                } else {
+                    throw "HTML Page Not Found"
+                }
+                break;
+            case 'json':
+                let path = './data.json'
+                if (fs.existsSync(path)) {
+                    res.setHeader("Content-Type", "application/json");
+                    fs.readFile(path, (error, data) => {
+                        if (!error) {
+                            res.write(data)
+                        }
+                        res.end(`{"message": "This is a JSON Response"}`);
+                    })
                 }
                 else {
-                    res.write(data)
+                    throw "Json File Not Found"
                 }
+                break;
+            case 'uuid':
+                res.write(`{"uuid" : ${uuidv4()}}`)
                 res.end()
-            })
-            break;
-        case 'json':
-            res.setHeader("Content-Type", "application/json");
-            fs.readFile('data.json', (error, data) => {
-                if (error) {
-                    res.writeHead(404)
-                    res.write('Error: File Not Found')
+                break;
+            case 'status':
+                const statusCode = url_array[2]
+                status = { "100": "Informational responses", "200": "Successful responses", "300": "Redirects", "400": "Client Error", "500": "Server Error" }
+                if (Number.isInteger((parseInt(statusCode)))) {
+                    res.writeHead(statusCode, { "Content-Type": "text/plain" });
+                    res.write(` The Status_Code is : ${status[statusCode]}`)
+                    res.end()
                 }
                 else {
-
-                    res.write(data)
+                    throw "Status Code Not Valid"
                 }
-                res.end(`{"message": "This is a JSON response"}`);
-            })
-            break;
-        case 'uuid':
-            res.write(`{"uuid" : ${uuidv4()}}`)
-            res.end()
-            break;
-        case 'status':
-            const statusCode = url_array[2]
-            res.statusCode = statusCode
-            res.write(` The Status_Code is : ${statusCode}`)
-            res.end()
-            break;
-        case 'delay':
-            const delayTime = url_array[2]
-            res.write(`delay time is ${delayTime} secound`)
-            setInterval(() => {
-                res.end()
-            }, delayTime * 1000)
+                break;
+            case 'delay':
+                const delayTime = url_array[2];
+                if (Number.isInteger((parseInt(delayTime)))) {
+                    res.writeHead(delayTime, { "Content-Type": "text/plain" });
+                    res.write(`delay time is ${delayTime} secound`)
+                    setInterval(() => {
+                        res.end()
+                    }, delayTime * 1000)
+                }
+                else {
+                    throw "Secound's is Not In Number"
+                }
+                break;
+            default:
+                throw "Bad response not a vaild entry!! Try Again "
+        }
+    }
+    catch (error) {
+        console.log("Error has occured :")
+        res.writeHead(404)
+        res.write(`Error at : ${url_array} Not Found  : message : ` + error)
+        res.end(`{"message": "This is the Error Response from Catch ${url_array} is not a vaild entry"}`);
     }
 })
 server.listen(port, error => {
@@ -60,3 +84,4 @@ server.listen(port, error => {
         console.log('server is listening on port : ' + port)
     }
 })
+
