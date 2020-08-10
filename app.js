@@ -11,12 +11,9 @@ const server = http.createServer((req, res) => {
                 let path1 = './index.html';
                 if (fs.existsSync(path1)) {
                     res.writeHead(200, { 'Contest-type': 'text/html' })
-                    fs.readFile(path1, (error, data) => {
-                        if (!error) {
-                            res.write(data)
-                        }
-                        res.end()
-                    })
+                    let data = fs.readFileSync(path1, 'utf8');
+                    res.write(data)
+                    res.end()
                 } else {
                     throw "HTML Page Not Found"
                 }
@@ -25,12 +22,9 @@ const server = http.createServer((req, res) => {
                 let path = './data.json'
                 if (fs.existsSync(path)) {
                     res.setHeader("Content-Type", "application/json");
-                    fs.readFile(path, (error, data) => {
-                        if (!error) {
-                            res.write(data)
-                        }
-                        res.end(`{"message": "This is a JSON Response"}`);
-                    })
+                    let data = fs.readFileSync(path, 'utf8');
+                    res.write(data)
+                    res.end(`{"message": "This is a JSON Response"}`);
                 }
                 else {
                     throw "Json File Not Found"
